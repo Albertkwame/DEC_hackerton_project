@@ -1,7 +1,6 @@
 from pipeline import extract,transform,load
 
 
-
 def run_pipiline():
     source_data = extract()
     cleaned_data = transform(source_data)

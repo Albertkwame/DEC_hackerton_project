@@ -1,11 +1,10 @@
 import requests
 import pandas as pd 
-from db import engine,RestCountry
+from db import engine
 import random
 
 
 def extract():
-
   url = "https://restcountries.com/v3.1/all?fields=name,independent,unMember,startOfWeek,currencies,idd,capital,region,subregion,languages,area,population,continents"
 
   respond = requests.get(url)
@@ -30,7 +29,7 @@ def transform(extracted_data):
       country.get('startOfWeek'),
       country.get('name').get('official'),
       [val.get('common') for val in country.get('name', {}).get('nativeName', {}).values()],
-       country.get('currencies').keys(),
+      [country.get('currencies').keys()],
       [val.get('name') for val in country.get('currencies', {}).values()],   
       [val.get('symbol') for val in country.get('currencies', {}).values()],                                    
       country.get('capital'),  
@@ -39,7 +38,7 @@ def transform(extracted_data):
       country.get('area'),
       country.get('population'),
       country.get('continents'),
-      country.get('languages').values(),
+      list[country.get('languages').values()],
        country.get('idd').get('root'),
       country.get('idd').get('suffixes')
       ])
@@ -49,11 +48,11 @@ def transform(extracted_data):
     df.columns =['id','Country_name','Independence','United_Nation_members','startOfWeek','Official_country_name','Common_native_name',
                  'Currency_code','Currency_name','Currency_symbol','Capital','Region','Sub_region','Area',
                  'Population','Continents','Languages','idd_root','idd_suffixes']
-    
-    #df['independent'] = df['independent'].replace(['False','True'],['No','Yes'])
+    df['id'] = range(1,len(df) + 1)
     df['Currency_code'] = df['Currency_code'].apply(list)
     df['Languages'] = df['Languages'].apply(list)
     df['United_Nation_members'] = df['United_Nation_members'].astype(str)
+    df['Independence'] = df['Independence'].astype(str)
   return df
 
 
@@ -61,17 +60,13 @@ def transform(extracted_data):
 
 def load(cleaned_data ):
    
-   conn = engine
+   con_engine = engine
+
    cleaned_data.to_sql(
    name = "rest_countries",
-   con = conn,
-   if_exists = "append",
+   con = con_engine,
+   if_exists = "replace",
    index = False,
-   #index_label  = "id"
-
-  )
-
-
-# data = extract()
-# df =transform(data)
-# print(df.dtypes)
+   
+    )
+   return print(f'The data been successfully load into the database')
